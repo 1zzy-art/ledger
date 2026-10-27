@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f6f7f9">
+<title>日常台账 · 记账与体重</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="日常台账">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --text: #111827;
+    --text-2: #4b5563;
+    --muted: #9ca3af;
+    --line: #eef0f3;
+    --brand: #0ea371;
+    --brand-weak: #e8f6f1;
+    --red: #e5484d;
+    --red-weak: #fdeeee;
+    --blue: #3b82f6;
+    --blue-weak: #eaf2fe;
+    --radius: 16px;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 12px 32px -16px rgba(16, 24, 40, .2);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+    background:
+      radial-gradient(900px 420px at 50% -120px, #e6f5ef 0%, rgba(230, 245, 239, 0) 70%),
+      var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 32px 20px 72px;
+  }
+
+  /* ---------- header ---------- */
+  .head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 26px;
+  }
+
+  .head h1 {
+    margin: 0 0 5px;
+    font-size: 23px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+
+  .head .sub {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  /* ---------- buttons ---------- */
+  button {
+    font: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 9px 18px;
+    border: none;
+    border-radius: 10px;
+    background: var(--brand);
+    color: #fff;
+    cursor: pointer;
+    transition: filter .15s ease, transform .1s ease, background .15s ease;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .1);
+  }
+
+  button:hover { filter: brightness(1.05); }
+  button:active { transform: translateY(1px); }
+  button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  button.ghost {
+    background: #fff;
+    color: var(--text-2);
+    border: 1px solid var(--line);
+    font-weight: 500;
+    font-size: 13px;
+    padding: 7px 14px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+  }
+
+  button.ghost:hover { background: #fafbfc; color: var(--text); }
+
+  /* ---------- stats ---------- */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+
+  .stat {
+    background: var(--card);
+    border: 1px solid rgba(17, 24, 39, .045);
+    border-radius: var(--radius);
+    padding: 15px 17px;
+    box-shadow: var(--shadow);
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+
+  .stat:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 16px 38px -18px rgba(16, 24, 40, .26);
+  }
+
+  .stat .label {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: .02em;
+    margin-bottom: 3px;
+    white-space: nowrap;
+  }
+
+  .stat .value {
+    font-size: 23px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .red { color: var(--red); }
+  .green { color: var(--brand); }
+  .blue { color: var(--blue); }
+  .gray { color: var(--text-2); }
+
+  /* ---------- panel ---------- */
+  .panel {
+    background: var(--card);
+    border: 1px solid rgba(17, 24, 39, .045);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 14px;
+  }
+
+  .panel-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: -.01em;
+  }
+
+  .panel-title .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: var(--brand-weak);
+    color: var(--brand);
+  }
+
+  .panel-title .icon.blue-bg { background: var(--blue-weak); color: var(--blue); }
+
+  .panel-meta {
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- form ---------- */
+  .entry-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 20px 16px;
+  }
+
+  input, select {
+    font: inherit;
+    font-size: 14px;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fbfcfd;
+    color: var(--text);
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+
+  input:hover, select:hover { border-color: #dfe3e8; }
+
+  input:focus, select:focus {
+    outline: none;
+    background: #fff;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(14, 163, 113, .13);
+  }
+
+  input[type="number"] { width: 100px; font-variant-numeric: tabular-nums; }
+  input[type="date"] { width: 158px; }
+  input.note { flex: 1; min-width: 120px; }
+  input::placeholder { color: #b6bcc5; }
+
+  /* ---------- chart ---------- */
+  .chart { padding: 0 20px 18px; }
+
+  .chart-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  .chart-title {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-2);
+    letter-spacing: .02em;
+  }
+
+  .chart-sub {
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chart-body { position: relative; height: 190px; }
+  .chart-body canvas { display: block; width: 100%; height: 100%; }
+
+  .chart-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--muted);
+    background: #fbfcfd;
+    border: 1px dashed #e6eaee;
+    border-radius: 12px;
+  }
+
+  .chart-empty[hidden] { display: none; }
+
+  /* ---------- table ---------- */
+  table { width: 100%; border-collapse: collapse; }
+
+  thead th {
+    font-size: 12px;
+    font-weight: 500;
+    color: #8b93a1;
+    text-align: left;
+    padding: 10px 20px;
+    background: #f7f8fa;
+    letter-spacing: .03em;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background .12s ease; }
+  tbody tr:hover { background: #fafbfc; }
+
+  .right { text-align: right; }
+
+  .money {
+    font-weight: 650;
+    color: var(--red);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .weight-val {
+    font-weight: 650;
+    color: var(--blue);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .date-cell { color: var(--text-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .note-cell { color: var(--muted); }
+
+  .pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--brand-weak);
+    color: #0b8a60;
+    white-space: nowrap;
+  }
+
+  .pill.blue { background: var(--blue-weak); color: #2563eb; }
+
+  button.del {
+    background: transparent;
+    color: #6b7280;
+    box-shadow: none;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: .8;
+    white-space: nowrap;
+    transition: opacity .12s ease, background .12s ease, color .12s ease;
+  }
+
+  button.del:hover {
+    background: var(--red-weak);
+    color: var(--red);
+    opacity: 1;
+    filter: none;
+  }
+
+  /* ---------- empty ---------- */
+  .empty {
+    padding: 38px 20px 42px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  .empty svg { width: 30px; height: 30px; opacity: .5; margin-bottom: 8px; }
+  .empty p { margin: 0; font-size: 14px; color: var(--text-2); }
+  .empty span { display: block; margin-top: 4px; font-size: 12px; }
+
+  /* ---------- toast ---------- */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 32px;
+    transform: translate(-50%, 12px);
+    background: rgba(17, 24, 39, .92);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 18px;
+    border-radius: 999px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+    z-index: 50;
+    backdrop-filter: blur(6px);
+  }
+
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  .foot {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  @keyframes rowIn {
+    from { opacity: 0; transform: translateY(-3px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  tbody tr.new { animation: rowIn .22s ease; }
+
+  @media (max-width: 680px) {
+    .wrap { padding: 22px 14px 56px; }
+    .head { flex-direction: column; }
+    .actions { width: 100%; }
+    .stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat .value { font-size: 20px; }
+    .entry-form { padding: 0 14px 14px; }
+    .entry-form input.note { flex: 1 1 100%; }
+    .entry-form button { flex: 1 1 100%; }
+    thead th, tbody td { padding-left: 14px; padding-right: 14px; }
+    .c-date { width: 96px !important; }
+    .c-note { width: 0 !important; }
+    thead th.note-col, td.note-cell { display: none; }
+    input, select { font-size: 16px; }
+  }
+
+  @media (max-width: 520px) {
+    .wrap { padding: 18px 10px 48px; }
+    .head { margin-bottom: 18px; }
+    .head h1 { font-size: 20px; }
+    .stats { gap: 8px; margin-bottom: 16px; }
+    .stat { padding: 12px 13px; border-radius: 14px; }
+    .stat .label { font-size: 11px; }
+    .stat .value { font-size: 18px; }
+    .panel-head { padding: 14px 14px 10px; }
+    .entry-form { padding: 0 10px 12px; gap: 6px; }
+    input[type="date"] { width: 168px; }
+    input[type="number"] { width: 82px; }
+    .c-amt { width: 92px !important; }
+    .c-op { width: auto !important; }
+    .chart { padding: 0 10px 14px; }
+    .chart-body { height: 170px; }
+    thead th, tbody td { padding: 9px 10px; font-size: 13px; }
+    .d-y { display: none; }
+    button.del { padding: 5px 6px; font-size: 12px; }
+    .foot { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div>
+      <h1>日常台账</h1>
+      <p class="sub" id="subLine">记账 · 体重</p>
+    </div>
+    <div class="actions">
+      <button class="ghost" id="btnExport">导出</button>
+      <button class="ghost" id="btnImport">导入</button>
+      <input type="file" id="fileInput" accept="application/json,.json" hidden>
+      <button class="ghost" id="btnClear">清空</button>
+    </div>
+  </header>
+
+  <section class="stats">
+    <div class="stat">
+      <div class="label">今日支出</div>
+      <div class="value red" id="statToday">¥0.00</div>
+    </div>
+    <div class="stat">
+      <div class="label">本月支出</div>
+      <div class="value" id="statMonth">¥0.00</div>
+    </div>
+    <div class="stat">
+      <div class="label">最新体重</div>
+      <div class="value blue" id="statWeight">--</div>
+    </div>
+    <div class="stat">
+      <div class="label">较上次</div>
+      <div class="value gray" id="statDelta">--</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div class="panel-title">
+        <span class="icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H19a2 2 0 0 1 2 2v1H6.5A2.5 2.5 0 0 0 4 11.5v6A2.5 2.5 0 0 0 6.5 20H19a2 2 0 0 0 2-2v-7"/>
+            <circle cx="16.5" cy="12.5" r="1.1" fill="currentColor" stroke="none"/>
+          </svg>
+        </span>
+        记账
+      </div>
+      <div class="panel-meta" id="expenseMeta"></div>
+    </div>
+    <form class="entry-form" id="expenseForm">
+      <input type="date" id="eDate" required>
+      <select id="eCategory">
+        <option>吃饭</option>
+        <option>交通</option>
+        <option>购物</option>
+        <option>日用</option>
+        <option>其他</option>
+      </select>
+      <input type="number" id="eAmount" placeholder="金额" min="0" step="0.01" required>
+      <input type="text" class="note" id="eNote" placeholder="备注（可选）">
+      <button type="submit">记一笔</button>
+    </form>
+    <table>
+      <colgroup>
+        <col class="c-date" style="width: 108px">
+        <col class="c-cat" style="width: 96px">
+        <col class="c-amt" style="width: 116px">
+        <col class="c-note">
+        <col class="c-op" style="width: 94px">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>日期</th>
+          <th>分类</th>
+          <th class="right">金额</th>
+          <th class="note-col">备注</th>
+          <th class="right"></th>
+        </tr>
+      </thead>
+      <tbody id="expenseBody"></tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div class="panel-title">
+        <span class="icon blue-bg">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="16" height="16" rx="4"/>
+            <path d="M8.5 13.5a3.5 3.5 0 0 1 7 0"/>
+            <path d="M12 13.5l1.8-2.2"/>
+          </svg>
+        </span>
+        体重
+      </div>
+      <div class="panel-meta" id="weightMeta"></div>
+    </div>
+    <form class="entry-form" id="weightForm">
+      <input type="date" id="wDate" required>
+      <input type="number" id="wWeight" placeholder="kg" min="0" step="0.1" required>
+      <input type="text" class="note" id="wNote" placeholder="备注（可选）">
+      <button type="submit">记体重</button>
+    </form>
+    <div class="chart">
+      <div class="chart-head">
+        <span class="chart-title">体重趋势</span>
+        <span class="chart-sub" id="weightChartSub"></span>
+      </div>
+      <div class="chart-body">
+        <canvas id="weightChart"></canvas>
+        <div class="chart-empty" id="weightChartEmpty" hidden>记录 2 次以上显示趋势</div>
+      </div>
+    </div>
+    <table>
+      <colgroup>
+        <col class="c-date" style="width: 108px">
+        <col class="c-amt" style="width: 110px">
+        <col class="c-note">
+        <col class="c-op" style="width: 94px">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>日期</th>
+          <th class="right">体重</th>
+          <th class="note-col">备注</th>
+          <th class="right"></th>
+        </tr>
+      </thead>
+      <tbody id="weightBody"></tbody>
+    </table>
+  </section>
+
+  <div class="foot">数据存在本机浏览器，换设备前先导出 JSON</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var LS_KEY = 'ledger-records-v1';
+  var records = [];
+
+  var EMPTY_EXPENSE =
+    '<tr><td colspan="5"><div class="empty">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H19a2 2 0 0 1 2 2v1H6.5A2.5 2.5 0 0 0 4 11.5v6A2.5 2.5 0 0 0 6.5 20H19a2 2 0 0 0 2-2v-7"/></svg>' +
+    '<p>还没有记账记录</p><span>在上面记下第一笔</span></div></td></tr>';
+
+  var EMPTY_WEIGHT =
+    '<tr><td colspan="4"><div class="empty">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 13.5a3.5 3.5 0 0 1 7 0"/></svg>' +
+    '<p>还没有体重记录</p><span>每天同一时间称更准</span></div></td></tr>';
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function uid() {
+    if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+    return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(LS_KEY);
+      var parsed = raw ? JSON.parse(raw) : [];
+      records = Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      records = [];
+    }
+  }
+
+  function save() {
+    localStorage.setItem(LS_KEY, JSON.stringify(records));
+  }
+
+  function sorted() {
+    return records.slice().sort(function (a, b) {
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
+  }
+
+  function money(n) {
+    return '¥' + (Number(n) || 0).toFixed(2);
+  }
+
+  var lastId = null;
+
+  function render() {
+    var today = todayStr();
+    var ym = today.slice(0, 7);
+    var list = sorted();
+    var todayTotal = 0;
+    var monthTotal = 0;
+    var expenseRows = [];
+    var weightRows = [];
+
+    list.forEach(function (r) {
+      if (r.type === 'expense') {
+        var amt = Number(r.amount) || 0;
+        if (r.date === today) todayTotal += amt;
+        if (String(r.date).slice(0, 7) === ym) monthTotal += amt;
+        expenseRows.push(r);
+      } else if (r.type === 'weight') {
+        weightRows.push(r);
+      }
+    });
+
+    document.getElementById('statToday').textContent = money(todayTotal);
+    document.getElementById('statMonth').textContent = money(monthTotal);
+
+    var wEl = document.getElementById('statWeight');
+    var dEl = document.getElementById('statDelta');
+    if (weightRows.length === 0) {
+      wEl.textContent = '--';
+      dEl.textContent = '--';
+      dEl.className = 'value gray';
+    } else {
+      var latest = Number(weightRows[0].weight) || 0;
+      wEl.textContent = latest.toFixed(1) + ' kg';
+      if (weightRows.length >= 2) {
+        var prev = Number(weightRows[1].weight) || 0;
+        var diff = latest - prev;
+        var arrow = diff > 0 ? '↑ ' : diff < 0 ? '↓ ' : '';
+        dEl.textContent = arrow + (diff > 0 ? '+' : '') + diff.toFixed(1) + ' kg';
+        dEl.className = 'value ' + (diff > 0 ? 'red' : diff < 0 ? 'green' : 'gray');
+      } else {
+        dEl.textContent = '--';
+        dEl.className = 'value gray';
+      }
+    }
+
+    document.getElementById('expenseMeta').textContent = expenseRows.length + ' 条 · 本月 ' + money(monthTotal);
+    document.getElementById('weightMeta').textContent = weightRows.length + ' 条';
+
+    var eBody = document.getElementById('expenseBody');
+    if (expenseRows.length === 0) {
+      eBody.innerHTML = EMPTY_EXPENSE;
+    } else {
+      eBody.innerHTML = expenseRows.map(function (r) {
+        var isNew = r.id === lastId ? ' class="new"' : '';
+        return '<tr' + isNew + '>' +
+          '<td class="date-cell"><span class="d-y">' + esc(String(r.date).slice(0, 5)) + '</span>' + esc(String(r.date).slice(5)) + '</td>' +
+          '<td><span class="pill">' + esc(r.category || '其他') + '</span></td>' +
+          '<td class="right money">' + money(r.amount) + '</td>' +
+          '<td class="note-cell">' + esc(r.note) + '</td>' +
+          '<td class="right"><button class="del" data-id="' + esc(r.id) + '">删除</button></td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    var wBody = document.getElementById('weightBody');
+    if (weightRows.length === 0) {
+      wBody.innerHTML = EMPTY_WEIGHT;
+    } else {
+      wBody.innerHTML = weightRows.map(function (r) {
+        var isNew = r.id === lastId ? ' class="new"' : '';
+        return '<tr' + isNew + '>' +
+          '<td class="date-cell"><span class="d-y">' + esc(String(r.date).slice(0, 5)) + '</span>' + esc(String(r.date).slice(5)) + '</td>' +
+          '<td class="right weight-val">' + (Number(r.weight) || 0).toFixed(1) + ' kg</td>' +
+          '<td class="note-cell">' + esc(r.note) + '</td>' +
+          '<td class="right"><button class="del" data-id="' + esc(r.id) + '">删除</button></td>' +
+          '</tr>';
+      }).join('');
+    }
+    lastId = null;
+
+    drawChart(weightRows);
+  }
+
+  var CHART_FONT = '-apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif';
+
+  function niceStep(raw) {
+    var pow = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+    var n = raw / pow;
+    var s = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
+    return s * pow;
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function curveTo(ctx, cps, i) {
+    var p0 = cps[i - 1], p1 = cps[i], p2 = cps[i + 1], p3 = cps[i + 2];
+    if (!p2) { ctx.lineTo(p1.x, p1.y); return; }
+    var x1 = p1.x + (p2.x - p0.x) / 6, y1 = p1.y + (p2.y - p0.y) / 6;
+    var x2 = p2.x - ((p3 ? p3.x : p2.x) - p1.x) / 6;
+    var y2 = p2.y - ((p3 ? p3.y : p2.y) - p1.y) / 6;
+    ctx.bezierCurveTo(x1, y1, x2, y2, p2.x, p2.y);
+  }
+
+  function drawChart(rows) {
+    var canvas = document.getElementById('weightChart');
+    var emptyEl = document.getElementById('weightChartEmpty');
+    var subEl = document.getElementById('weightChartSub');
+    if (!canvas || !emptyEl || !subEl) return;
+
+    // 同一天多条取最新，按日期升序，最多画最近 30 天
+    var byDate = {};
+    rows.forEach(function (r) {
+      var d = r.date;
+      if (!byDate[d] || (r.createdAt || 0) > (byDate[d].createdAt || 0)) byDate[d] = r;
+    });
+    var series = Object.keys(byDate).sort().map(function (d) { return byDate[d]; }).slice(-30);
+
+    if (series.length < 2) {
+      canvas.hidden = true;
+      emptyEl.hidden = false;
+      subEl.textContent = series.length === 1 ? '再记 1 次就有曲线' : '';
+      return;
+    }
+    canvas.hidden = false;
+    emptyEl.hidden = true;
+
+    var firstV = Number(series[0].weight) || 0;
+    var lastV = Number(series[series.length - 1].weight) || 0;
+    var delta = lastV - firstV;
+    subEl.textContent = '近 ' + series.length + ' 次 · ' +
+      (Math.abs(delta) < 0.05 ? '持平' : (delta > 0 ? '↑ ' : '↓ ') + Math.abs(delta).toFixed(1) + ' kg');
+
+    var box = canvas.parentNode;
+    var w = box.clientWidth || 0;
+    var h = box.clientHeight || 0;
+    if (w < 20 || h < 20) return;
+
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    var padL = 36, padR = 12, padT = 26, padB = 24;
+    var cw = Math.max(10, w - padL - padR);
+    var ch = Math.max(10, h - padT - padB);
+
+    var vals = series.map(function (r) { return Number(r.weight) || 0; });
+    var min = Math.min.apply(null, vals);
+    var max = Math.max.apply(null, vals);
+    var span = max - min;
+    if (span < 0.8) span = 0.8;
+    var step = niceStep(span / 3);
+    var lo = Math.max(0, Math.floor((min - span * 0.18) / step) * step);
+    var hi = Math.ceil((max + span * 0.18) / step) * step;
+    if (hi - lo < step * 2) hi = lo + step * 2;
+
+    var cps = series.map(function (r, i) {
+      var v = Number(r.weight) || 0;
+      return {
+        x: padL + cw * i / (series.length - 1),
+        y: padT + ch - (v - lo) / (hi - lo) * ch,
+        v: v,
+        d: r.date
+      };
+    });
+
+    // 水平网格 + 刻度值
+    ctx.font = '10px ' + CHART_FONT;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    var lines = Math.round((hi - lo) / step);
+    for (var g = 0; g <= lines; g++) {
+      var gv = lo + step * g;
+      var gy = padT + ch - (gv - lo) / (hi - lo) * ch;
+      ctx.strokeStyle = g === 0 ? 'rgba(17,24,39,.10)' : 'rgba(17,24,39,.05)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padL, gy);
+      ctx.lineTo(w - padR, gy);
+      ctx.stroke();
+      ctx.fillStyle = '#a8afba';
+      ctx.fillText(gv.toFixed(1), padL - 9, gy);
+    }
+
+    // 渐变面积
+    var grad = ctx.createLinearGradient(0, padT, 0, padT + ch);
+    grad.addColorStop(0, 'rgba(14,163,113,.18)');
+    grad.addColorStop(1, 'rgba(14,163,113,0)');
+    ctx.beginPath();
+    ctx.moveTo(cps[0].x, cps[0].y);
+    for (var i = 1; i < cps.length; i++) curveTo(ctx, cps, i);
+    ctx.lineTo(cps[cps.length - 1].x, padT + ch);
+    ctx.lineTo(cps[0].x, padT + ch);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // 折线
+    ctx.beginPath();
+    ctx.moveTo(cps[0].x, cps[0].y);
+    for (var j = 1; j < cps.length; j++) curveTo(ctx, cps, j);
+    ctx.strokeStyle = '#0ea371';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // 数据点
+    cps.forEach(function (p, i) {
+      var isLast = i === cps.length - 1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, isLast ? 4 : 2.6, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.lineWidth = isLast ? 2.4 : 1.6;
+      ctx.strokeStyle = '#0ea371';
+      ctx.stroke();
+    });
+
+    // 最新值气泡
+    var lp = cps[cps.length - 1];
+    var text = lp.v.toFixed(1) + ' kg';
+    ctx.font = '600 11px ' + CHART_FONT;
+    var tw = ctx.measureText(text).width;
+    var bw = tw + 14, bh = 19;
+    var bx = lp.x - bw / 2;
+    var by = lp.y - 14 - bh;
+    if (by < 2) by = lp.y + 14;
+    if (bx < 2) bx = 2;
+    if (bx + bw > w - 2) bx = w - 2 - bw;
+    roundRect(ctx, bx, by, bw, bh, 6);
+    ctx.fillStyle = '#0ea371';
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, bx + bw / 2, by + bh / 2 + 0.5);
+
+    // 日期刻度
+    ctx.font = '10px ' + CHART_FONT;
+    ctx.fillStyle = '#a8afba';
+    ctx.textBaseline = 'top';
+    var total = cps.length;
+    var idxs = total <= 4
+      ? cps.map(function (_, i) { return i; })
+      : [0, Math.round((total - 1) / 3), Math.round((total - 1) * 2 / 3), total - 1];
+    idxs = idxs.filter(function (v, i, a) { return a.indexOf(v) === i; });
+    idxs.forEach(function (i) {
+      ctx.textAlign = i === 0 ? 'left' : (i === total - 1 ? 'right' : 'center');
+      ctx.fillText(cps[i].d.slice(5).replace('-', '/'), cps[i].x, padT + ch + 8);
+    });
+  }
+
+  var toastTimer = null;
+  function toast(msg) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove('show'); }, 1600);
+  }
+
+  function bindDelete() {
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('button.del') : null;
+      if (!btn) return;
+      var id = btn.getAttribute('data-id');
+      if (!confirm('删除这条记录？')) return;
+      records = records.filter(function (r) { return r.id !== id; });
+      save();
+      render();
+      toast('已删除');
+    });
+  }
+
+  function bindForms() {
+    document.getElementById('eDate').value = todayStr();
+    document.getElementById('wDate').value = todayStr();
+
+    document.getElementById('expenseForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var amount = parseFloat(document.getElementById('eAmount').value);
+      if (!(amount > 0)) { toast('请输入金额'); return; }
+      var rec = {
+        id: uid(),
+        type: 'expense',
+        date: document.getElementById('eDate').value || todayStr(),
+        category: document.getElementById('eCategory').value,
+        amount: Math.round(amount * 100) / 100,
+        note: document.getElementById('eNote').value.trim(),
+        createdAt: Date.now()
+      };
+      records.push(rec);
+      lastId = rec.id;
+      save();
+      render();
+      document.getElementById('eAmount').value = '';
+      document.getElementById('eNote').value = '';
+      document.getElementById('eAmount').focus();
+      toast('已记录 ' + money(rec.amount));
+    });
+
+    document.getElementById('weightForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var w = parseFloat(document.getElementById('wWeight').value);
+      if (!(w > 0 && w < 500)) { toast('请输入有效体重'); return; }
+      var rec = {
+        id: uid(),
+        type: 'weight',
+        date: document.getElementById('wDate').value || todayStr(),
+        weight: Math.round(w * 10) / 10,
+        note: document.getElementById('wNote').value.trim(),
+        createdAt: Date.now()
+      };
+      records.push(rec);
+      lastId = rec.id;
+      save();
+      render();
+      document.getElementById('wWeight').value = '';
+      document.getElementById('wNote').value = '';
+      document.getElementById('wWeight').focus();
+      toast('已记录 ' + rec.weight.toFixed(1) + ' kg');
+    });
+  }
+
+  function bindToolbar() {
+    document.getElementById('btnExport').addEventListener('click', function () {
+      var blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'ledger-backup-' + todayStr() + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      toast('已导出');
+    });
+
+    document.getElementById('btnImport').addEventListener('click', function () {
+      document.getElementById('fileInput').click();
+    });
+
+    document.getElementById('fileInput').addEventListener('change', function (e) {
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        try {
+          var data = JSON.parse(reader.result);
+          if (!Array.isArray(data)) throw new Error('格式不对');
+          if (!confirm('导入会覆盖当前 ' + records.length + ' 条记录，确定吗？')) return;
+          records = data.map(function (r) {
+            return {
+              id: r.id || uid(),
+              type: r.type === 'weight' ? 'weight' : 'expense',
+              date: r.date || todayStr(),
+              category: r.category || '其他',
+              amount: r.amount,
+              weight: r.weight,
+              note: r.note || '',
+              createdAt: r.createdAt || Date.now()
+            };
+          });
+          save();
+          render();
+          toast('已导入 ' + records.length + ' 条');
+        } catch (err) {
+          toast('导入失败：' + err.message);
+        }
+        e.target.value = '';
+      };
+      reader.readAsText(file, 'utf-8');
+    });
+
+    document.getElementById('btnClear').addEventListener('click', function () {
+      if (records.length === 0) { toast('没有数据'); return; }
+      if (!confirm('清空全部 ' + records.length + ' 条记录？删了找不回来，建议先导出。')) return;
+      if (!confirm('再确认一次：真的要清空吗？')) return;
+      records = [];
+      save();
+      render();
+      toast('已清空');
+    });
+  }
+
+  load();
+  bindForms();
+  bindDelete();
+  bindToolbar();
+  render();
+
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(render, 160);
+  });
+
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+  }
+})();
+</script>
+</body>
+</html>
